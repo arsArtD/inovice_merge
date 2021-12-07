@@ -3,15 +3,79 @@
 <head>
     <meta charset="utf-8">
     <title>Multiple file upload</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.13.2/lib/theme-chalk/index.css">
+    <!-- 导入 Vue 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <!-- 导入组件库 -->
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.13.2/lib/index.js"></script>
+    <style>
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .el-upload-dragger {
+            min-width: 600px;
+            min-height: 600px;
+            border: 1px dot-dash blue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .download {
+
+        }
+    </style>
 </head>
 <body>
-<h1>Upload multiple files with fields</h1>
+    <div id="container">
+        <el-upload
+                class="upload-demo"
+                action="api/upload"
+                :on-preview="handlePreview"
+                :on-remove="handleRemove"
+                :before-remove="beforeRemove"
+                multiple
+                list-type="pdf"
+                :limit="3"
+                :auto-upload="false"
+                :drag="true"
+                :on-exceed="handleExceed"
+                ref="upload_component"
+                :file-list="fileList">
+            <el-link :underline="false" class="tip">拖拽文件到此处</el-link>
+        </el-upload>
+        <el-button class="download" size="small" type="success" @click="submitUpload">合并文件并下载</el-button>
+    </div>
 
-<form action="/api/upload" method="post" enctype="multipart/form-data">
-    Name: <input type="text" name="name"><br>
-    Email: <input type="email" name="email"><br>
-    Files: <input type="file" name="files" multiple><br><br>
-    <input type="submit" value="Submit">
-</form>
+    <script>
+        new Vue({
+            el: '#container',
+            data() {
+                return {
+                    fileList:[]
+                };
+            },
+            methods: {
+                handleRemove: function(file, fileList) {
+                    console.log(file, fileList);
+                },
+                handlePreview: function(file) {
+                    console.log(file);
+                },
+                handleExceed: function(files, fileList) {
+                    this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+                },
+                beforeRemove: function(file, fileList) {
+                    return this.$confirm(`确定移除 ${ file.name }？`);
+                },
+                submitUpload: function() {
+                    console.log(this.$refs)
+                    this.$refs.upload_component.submit();
+                }
+            }
+        })
+    </script>
 </body>
 </html>

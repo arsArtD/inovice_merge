@@ -17,8 +17,6 @@ func main() {
 
 	fmt.Println(getFileName(".pdf"))
 	r.POST("/api/upload", func(c *gin.Context) {
-		name := c.PostForm("name")
-		email := c.PostForm("email")
 
 		// Multipart form
 		form, err := c.MultipartForm()
@@ -26,7 +24,7 @@ func main() {
 			c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 			return
 		}
-		files := form.File["files"]
+		files := form.File["file"]
 
 		for _, file := range files {
 			ext := filepath.Ext(file.Filename)
@@ -41,7 +39,7 @@ func main() {
 			}
 		}
 
-		c.String(http.StatusOK, fmt.Sprintf("Uploaded successfully %d files with fields name=%s and email=%s.", len(files), name, email))
+		c.String(http.StatusOK, fmt.Sprintf("Uploaded successfully %d files.", len(files)))
 	})
 
 	r.Run(":8080")
