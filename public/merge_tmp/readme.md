@@ -2,8 +2,6 @@
 
 文件合并后的目录
 
-E:\workspace\git_workspace\inovice_merge\bin\windows_x86_64>pdfcpu.exe  merge ../../public/merge_tmp/out.pdf ../../public/upload/20211207/*.pdf;
 
-E:\workspace\git_workspace\inovice_merge\bin\windows_x86_64>pdfcpu.exe grid -- "bo:off"  ../../public/merge_tmp/a.pdf 4 ../../public/merge_tmp/out.pdf;
 
-pdfcpu.exe  merge ../../public/merge_tmp/out.pdf ../../public/upload/20211207/*.pdf;pdfcpu.exe grid -- "bo:off"  ../../public/merge_tmp/a.pdf 4 ../../public/merge_tmp/out.pdf;
+E:\workspace\git_workspace\inovice_merge\bin\windows-amd64\pdfcpu.exe grid -- "bo:off" E:\workspace\git_workspace\inovice_merge\public\merge_tmp\1149ae11-ad45-4a75-a5fc-c63ffc98734e.pdf 4 E:\workspace\git_workspace\inovice_merge\public\merge_tmp\570f27d9-5ab4-41bc-b32e-de6e5327b97b.pdf

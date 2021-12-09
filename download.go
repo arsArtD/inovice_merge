@@ -1,18 +1,14 @@
 package main
 
 import (
-	"archive/tar"
-	"archive/zip"
 	"crypto/sha256"
 	"fmt"
 	"github.com/dustin/go-humanize"
-	"github.com/xi2/xz"
+	"invoice_merge/app/library"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -82,7 +78,7 @@ func main() {
 	if goos == "windows" {
 		fmt.Printf("unzip file %s to:%s\n", zipFileName, unzipDst)
 		// 使用zip方法解压缩文件
-		files, err := Unzip(zipFileName, unzipDst)
+		files, err := library.Unzip(zipFileName, unzipDst)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -91,7 +87,7 @@ func main() {
 	} else {
 		fmt.Printf("unxz file %s to:%s\n", zipFileName, unzipDst)
 		// 使用zip方法解压缩文件
-		err := UnXz(zipFileName, unzipDst)
+		err := library.UnXz(zipFileName, unzipDst)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -114,7 +110,7 @@ func checkIfExistPdfcpu(goos, unzipDst, zipFileName string) (bool, bool) {
 	}
 
 	var excuteExists = false
-	_, excuteRes := checkCmdRes(excutePath, []string{"version"})
+	_, excuteRes := library.CheckCmdRes(excutePath, []string{"version"})
 	if strings.Contains(excuteRes, PDFCPU_VERSION) {
 		excuteExists = true
 	}
@@ -122,51 +118,13 @@ func checkIfExistPdfcpu(goos, unzipDst, zipFileName string) (bool, bool) {
 	// 判断是否存在压缩文件
 	var pkgExists = false
 	var pkgPath = filepath.Join(dirBase, zipFileName)
-	_, pkgErr := os.Stat(pkgPath)
 	log.Println("pkgpath------->", pkgPath)
+	_, pkgErr := os.Lstat(pkgPath)
+
 	if pkgErr == nil {
 		pkgExists = true
 	}
-	//log.Fatal("===============")
-
 	return pkgExists, excuteExists
-}
-
-func checkCmdRes(cmdPath string, args []string) (bool, string) {
-	_, excutePathErr := os.Stat(cmdPath)
-	if excutePathErr == nil {
-		cmd := exec.Command(cmdPath, args...)
-
-		stdout, err := cmd.StdoutPipe()
-
-		if err != nil {
-			log.Println("cmd.StdoutPipe...", err)
-			return false, ""
-		}
-
-		if err := cmd.Start(); err != nil {
-			log.Println("cmd.Start...", err)
-			return false, ""
-		}
-
-		data, err := ioutil.ReadAll(stdout)
-
-		if err != nil {
-			log.Println("ioutil.ReadAll...", err)
-			return false, ""
-		}
-
-		if err := cmd.Wait(); err != nil {
-			log.Println("cmd wait...", err)
-			return false, ""
-		}
-
-		// 通过pdfcpu的执行结果中是否包含版本信息来判断
-		var excuteRes = string(data)
-		fmt.Printf("cmd excute result%s\n", excuteRes)
-		return true, excuteRes
-	}
-	return false, ""
 }
 
 func checkSum() map[string]string {
@@ -254,165 +212,4 @@ func DownloadFile(filepath string, url string) (error, string) {
 	fmt.Printf("%s checksum is:%x\n", filepath, hasher.Sum(nil))
 
 	return nil, fmt.Sprintf("%x", hasher.Sum(nil))
-}
-
-// Unzip will decompress a zip archive, moving all files and folders
-// within the zip file (parameter 1) to an output directory (parameter 2).
-func Unzip(src string, dest string) ([]string, error) {
-
-	var filenames []string
-
-	r, err := zip.OpenReader(src)
-	if err != nil {
-		return filenames, err
-	}
-	defer r.Close()
-
-	for _, f := range r.File {
-
-		// Store filename/path for returning and using later on
-		// 直接将解压后的文件放到指定目录下
-		fpath := filepath.Join(dest, filepath.Base(f.Name))
-
-		// Check for ZipSlip. More Info: http://bit.ly/2MsjAWE
-		if !strings.HasPrefix(fpath, filepath.Clean(dest)+string(os.PathSeparator)) {
-			return filenames, fmt.Errorf("%s: illegal file path", fpath)
-		}
-
-		filenames = append(filenames, fpath)
-
-		if f.FileInfo().IsDir() {
-			// Make Folder
-			os.MkdirAll(fpath, os.ModePerm)
-			continue
-		}
-
-		// Make File
-		if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-			return filenames, err
-		}
-
-		outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-		if err != nil {
-			return filenames, err
-		}
-
-		rc, err := f.Open()
-		if err != nil {
-			return filenames, err
-		}
-
-		_, err = io.Copy(outFile, rc)
-
-		// Close the file without defer to close before next iteration of loop
-		outFile.Close()
-		rc.Close()
-
-		if err != nil {
-			return filenames, err
-		}
-	}
-	return filenames, nil
-}
-
-func Untar(tarball, target string) error {
-	reader, err := os.Open(tarball)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-	tarReader := tar.NewReader(reader)
-
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-
-		path := filepath.Join(target, header.Name)
-		info := header.FileInfo()
-		if info.IsDir() {
-			if err = os.MkdirAll(path, info.Mode()); err != nil {
-				return err
-			}
-			continue
-		}
-
-		file, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, info.Mode())
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		_, err = io.Copy(file, tarReader)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func UnXz(tarball, target string) error {
-	// Open a file
-	f, err := os.Open(tarball)
-	if err != nil {
-		return err
-	}
-	// Create an xz Reader
-	r, err := xz.NewReader(f, 0)
-	if err != nil {
-		return err
-	}
-	// Create a tar Reader
-	tr := tar.NewReader(r)
-	// Iterate through the files in the archive.
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			// end of tar archive
-			break
-		}
-		if err != nil {
-			return err
-		}
-		switch hdr.Typeflag {
-		case tar.TypeDir:
-			// create a directory
-			fmt.Println("creating:   " + hdr.Name)
-			err = os.MkdirAll(hdr.Name, 0777)
-			if err != nil {
-				return err
-			}
-		case tar.TypeReg, tar.TypeRegA:
-
-			// Store filename/path for returning and using later on
-			// hdr.Name 可能是名字的拼接，直接将文件放到指定目录下
-			fpath := filepath.Join(target, filepath.Base(hdr.Name))
-
-			if !strings.HasPrefix(fpath, filepath.Clean(target)+string(os.PathSeparator)) {
-				return fmt.Errorf("%s: illegal file path", fpath)
-			}
-
-			// Make File
-			if err = os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-				return err
-			}
-
-			outFile, err := os.OpenFile(fpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(hdr.Mode))
-			if err != nil {
-				return err
-			}
-
-			_, err = io.Copy(outFile, tr)
-			if err != nil {
-				return err
-			}
-
-			// Close the file without defer to close before next iteration of loop
-			defer outFile.Close()
-		}
-	}
-	defer f.Close()
-	return nil
 }

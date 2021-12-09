@@ -1,4 +1,4 @@
-module invoice_merge
+module github.com/arsArtD/inovice_merge
 
 go 1.14
 
@@ -13,7 +13,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/thoas/go-funk v0.9.1
 	github.com/ugorji/go v1.2.6 // indirect
-	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 	golang.org/x/crypto v0.0.0-20211202192323-5770296d904e // indirect
 	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	golang.org/x/text v0.3.7 // indirect
