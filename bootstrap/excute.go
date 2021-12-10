@@ -17,6 +17,7 @@ func Excute() {
 
 	var api controller.ApiController
 	r.POST("/api/upload", api.Upload)
+	r.POST("/api/merge_pdf", api.FormatPdf)
 
 	r.Run(":8080")
 }

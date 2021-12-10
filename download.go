@@ -3,8 +3,8 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/arsArtD/inovice_merge/app/library"
 	"github.com/dustin/go-humanize"
-	"invoice_merge/app/library"
 	"io"
 	"log"
 	"net/http"

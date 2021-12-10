@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
     <!-- 导入组件库 -->
     <script src="https://cdn.jsdelivr.net/npm/element-ui@2.13.2/lib/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
     <style>
         #container {
             display: flex;
@@ -38,15 +39,19 @@
                 :before-remove="beforeRemove"
                 multiple
                 list-type="pdf"
-                :limit="3"
-                :auto-upload="false"
+                :limit="10"
+                :auto-upload="true"
                 :drag="true"
                 :on-exceed="handleExceed"
+                :on-success="handleUploadSuccess"
+                :on-error="handleUploadFail"
                 ref="upload_component"
                 :file-list="fileList">
             <el-link :underline="false" class="tip">拖拽文件到此处</el-link>
         </el-upload>
-        <el-button class="download" size="small" type="success" @click="submitUpload">合并文件并下载</el-button>
+        <el-button class="download" size="small" type="success"
+                   @click="submitMerge">合并文件并下载
+        </el-button>
     </div>
 
     <script>
@@ -70,10 +75,38 @@
                 beforeRemove: function(file, fileList) {
                     return this.$confirm(`确定移除 ${ file.name }？`);
                 },
-                submitUpload: function() {
-                    console.log(this.$refs)
-                    this.$refs.upload_component.submit();
-                }
+                submitMerge: function() {
+                    // console.log(this.$refs)
+                    // this.$refs.upload_component.submit();
+                    var uploadFiles = [];
+                    //console.log(this.$refs.upload_component.uploadFiles);
+                    var vueFilelist = this.$refs.upload_component.uploadFiles;
+                    if (vueFilelist.length == 0) {
+                        this.$message.warning("请上传文件后再进行上传!");
+                    }
+                    for(i =0; i < vueFilelist.length; i++) {
+                        uploadFiles.push(vueFilelist[i].response.file_list[0]);
+                    }
+                    console.log(uploadFiles);
+                    $.ajax({
+                        method: 'POST',
+                        url: '/api/merge_pdf',
+                        data: {file_list: uploadFiles},
+                        //contentType: "application/json",
+                        success: function(res){
+                            window.open(res.pdf_url, '_blank');
+                        },
+                        error: function error(e) {
+                            console.log(e)
+                        }
+                    })
+                },
+                handleUploadSuccess: function (response, file, fileList) {
+                    console.log(response, file, fileList)
+                },
+                handleUploadFail: function(err, file, fileList) {
+                    console.log(err, file, fileList)
+                },
             }
         })
     </script>
