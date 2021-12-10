@@ -101,7 +101,7 @@ func (controller *ApiController) FormatPdf(context *gin.Context) {
 	// pdf内容重新排版
 	var resPdfFilePath = controller.getUploadFileName(".pdf", false)
 	resPdfFilePath = filepath.Join(megeDstPath, resPdfFilePath)
-	var cmdArgForReformat = []string{"grid", "--", "bo:off", resPdfFilePath, "4", mergePdfPath}
+	var cmdArgForReformat = []string{"grid", "--", "bo:off", resPdfFilePath, "2", mergePdfPath}
 	formatRes, excuteRes := library.CheckCmdRes(pdfcpuPath, cmdArgForReformat)
 	if !formatRes {
 		context.JSON(http.StatusBadRequest, fmt.Sprintf("format pdf error"))

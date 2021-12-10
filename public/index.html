@@ -17,7 +17,7 @@
             align-items: center;
         }
         .el-upload-dragger {
-            min-width: 600px;
+            min-width: 1024px;
             min-height: 600px;
             border: 1px dot-dash blue;
             display: flex;
@@ -25,7 +25,9 @@
             align-items: center;
         }
         .download {
-
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
         }
     </style>
 </head>
@@ -50,7 +52,7 @@
             <el-link :underline="false" class="tip">拖拽文件到此处</el-link>
         </el-upload>
         <el-button class="download" size="small" type="success"
-                   @click="submitMerge">合并文件并下载
+                   @click="submitMerge">查看合并后的文件
         </el-button>
     </div>
 
